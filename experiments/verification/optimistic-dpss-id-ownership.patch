@@ -1,0 +1,71 @@
+diff --git a/internal/wpACSS/wpAcssRecover.go b/internal/wpACSS/wpAcssRecover.go
+index df5a201..bfca35c 100644
+--- a/internal/wpACSS/wpAcssRecover.go
++++ b/internal/wpACSS/wpAcssRecover.go
+@@ -137,7 +137,7 @@ func WaitHelp(p *party.HonestParty, ID []byte, F uint32, N uint32, Shelp []uint3
+ 		lenRes := len(res)
+ 		var FLGContinue = false
+ 		for i := 0; i < lenRes; i++ {
+-			input := append(ID, utils.Uint32ToBytes(res[i].dealerID)...)
++			input := append(ID[:len(ID):len(ID)], utils.Uint32ToBytes(res[i].dealerID)...)
+ 			input = append(input, utils.Uint32ToBytes(p.PID)...)
+ 			if !vrfyRecCont(p, input, res[i]) {
+ 				log.Printf("[DPSS Recover] [New Party %v] verify the RecCont (dealerID: %v) from [New Party %v] fail\n", p.PID, res[i].dealerID, m.Sender)
+@@ -192,7 +192,7 @@ func WaitHelp(p *party.HonestParty, ID []byte, F uint32, N uint32, Shelp []uint3
+ 				var posI bls.Fr
+ 				bls.AsFr(&posI, uint64(p.PID+1))
+ 				bls.EvalPolyAt(&sMaskedDI, polyD, &posI)
+-				input := append(ID, utils.Uint32ToBytes(dealerID)...)
++				input := append(ID[:len(ID):len(ID)], utils.Uint32ToBytes(dealerID)...)
+ 				input = append(input, utils.Uint32ToBytes(p.PID)...)
+ 				FdiG1, _ := dprf.Combine(p, F, input, IdxList, ContribList, piDPRFList, p.GetPiShare(dealerID).PrfRec.VCdpk)
+ 				Fdi := utils.HashG1ToFr(&FdiG1)
+@@ -261,7 +261,7 @@ func recContrib(p *party.HonestParty, ID []byte, F uint32, dealerID uint32, call
+ 	bls.AddModFr(&sMasked, &v.S, &v.RecPolyEval[index])
+ 	bls.AddG1(&wiMask, &pi.Wvssi, &pi.PrfRec.Wphi[index])
+ 	bls.AddG1(&Cmask, &pi.PCvss, &pi.PrfRec.PCphi[index])
+-	input := append(ID, utils.Uint32ToBytes(dealerID)...)
++	input := append(ID[:len(ID):len(ID)], utils.Uint32ToBytes(dealerID)...)
+ 	input = append(input, utils.Uint32ToBytes(callerID)...)
+ 	DPRFContribF, piDPRF := dprf.Contrib(input, p.DSKi[dealerID], p.DPKi[dealerID], p.GetPiShare(dealerID).PrfRec.PiDpki)
+ 	piHelp := ProofHelp{
+diff --git a/internal/wpACSS/wpAcssShare.go b/internal/wpACSS/wpAcssShare.go
+index 8e64961..dcf5089 100644
+--- a/internal/wpACSS/wpAcssShare.go
++++ b/internal/wpACSS/wpAcssShare.go
+@@ -25,7 +25,7 @@ import (
+ // Assuming KZG setup has done, and public parameters are available
+ func ShareSend(ctx context.Context, p *party.HonestParty, ID []byte, current bool, F uint32, N uint32, secret bls.Fr) ([]byte, []byte) {
+ 	tblsScheme := tbls.NewThresholdSchemeOnG1(kyberbls.NewBLS12381Suite())
+-	extendID := append(ID, utils.Uint32ToBytes(p.PID)...)
++	extendID := append(ID[:len(ID):len(ID)], utils.Uint32ToBytes(p.PID)...)
+ 
+ 	//shares[0]=s, the other n elements are secret shares
+ 	PCvss, shares, witnesses, polyF := vss.VssShare(p, F, N, secret)
+@@ -203,7 +203,7 @@ func ShareSend(ctx context.Context, p *party.HonestParty, ID []byte, current boo
+ 
+ //ShareReceive handles the wpAcssShare message from other parties, and returns a value-proof tuple (v, pi)
+ func ShareReceive(p *party.HonestParty, isNew bool, ID []byte, senderID uint32) (party.VShare, party.PiShare, error) {
+-	extendID := append(ID, utils.Uint32ToBytes(senderID)...)
++	extendID := append(ID[:len(ID):len(ID)], utils.Uint32ToBytes(senderID)...)
+ 	m := <-p.GetMessage("wpAcssShare", extendID)
+ 	tblsScheme := tbls.NewThresholdSchemeOnG1(kyberbls.NewBLS12381Suite())
+ 
+@@ -225,7 +225,7 @@ func ShareReceive(p *party.HonestParty, isNew bool, ID []byte, senderID uint32)
+ 
+ 	// md = ID||d||g^s||PCvss||VCvs||PCdsk||VCdpk||PCphi[0...3]
+ 	//    = ID||d||mdPartial
+-	md = append(ID, utils.Uint32ToBytes(senderID)...)
++	md = append(ID[:len(ID):len(ID)], utils.Uint32ToBytes(senderID)...)
+ 	md = append(md, mdPartial...)
+ 	mReady := append([]byte("ready"), md...) //mReady = ready||md
+ 	// sigShare, _ := p.TblsScheme.Sign(p.SigSK, mReady)
+@@ -372,7 +372,7 @@ func genRecPoly(p *party.HonestParty, ID []byte, f uint32, n uint32) ([]bls.Fr,
+ 	}
+ 
+ 	for i := uint32(0); i < n; i++ {
+-		input := append(ID, utils.Uint32ToBytes(p.PID)...)
++		input := append(ID[:len(ID):len(ID)], utils.Uint32ToBytes(p.PID)...)
+ 		input = append(input, utils.Uint32ToBytes(i)...)
+ 		tmp := dprf.Eval(input, *dsk) // input = ID||dealerID||i
+ 		y[i] = *utils.HashG1ToFr(&tmp)

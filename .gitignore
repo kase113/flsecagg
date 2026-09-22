@@ -1,0 +1,31 @@
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+graft/
+
+# Experiments: derived, regenerable or machine-local artifacts.
+experiments/envs/
+experiments/tools/
+experiments/work/
+experiments/results/
+experiments/phase-a-traces/
+experiments/__pycache__/
+experiments/**/__pycache__/
+*.pyc
+
+
+# Python / editor noise
+.venv/
+venv/
+__pycache__/
+*.egg-info/
+.DS_Store
+
+# Upstream checkouts are pinned external dependencies, re-cloned by run
+# scripts and recorded by commit in REAL_COMPONENT_BRINGUP.md.
+experiments/upstream/
+
+# Third-party copyrighted papers. Reading material only — kept out of the repo
+# to avoid redistributing publisher PDFs; OCR transcripts derive from them too.
+papers/
+
+# AutoDL instance connection details — contains a plaintext SSH password.
+autoDL.md

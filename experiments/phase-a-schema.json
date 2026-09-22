@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Reconfigurable asynchronous FL Phase A schema",
+  "version": "a0",
+  "description": "Canonical records and event values for deterministic protocol replay.",
+  "csv_order": [
+    "order",
+    "kind",
+    "configuration",
+    "window",
+    "model_version",
+    "client",
+    "node",
+    "record_version",
+    "protection_context",
+    "source_window",
+    "delivered",
+    "update_id",
+    "source_update_id",
+    "source_generation",
+    "target_generation",
+    "handoff_attempt_id",
+    "retrained"
+  ],
+  "$defs": {
+    "optional_string": {
+      "type": ["string", "null"]
+    },
+    "optional_integer": {
+      "type": ["integer", "null"]
+    },
+    "trace_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["order", "kind", "delivered", "retrained"],
+      "properties": {
+        "order": {"type": "integer", "minimum": 1},
+        "kind": {
+          "type": "string",
+          "enum": [
+            "client_update",
+            "config_install",
+            "client_join",
+            "client_leave",
+            "committee_join",
+            "committee_leave",
+            "node_leave",
+            "node_crash",
+            "node_recover",
+            "node_corrupt",
+            "node_release",
+            "recover_state",
+            "message_deliver",
+            "handoff_confirm",
+            "handoff_abandon",
+            "client_resubmit",
+            "window_finalize",
+            "erase_receipt"
+          ]
+        },
+        "configuration": {"$ref": "#/$defs/optional_string"},
+        "window": {"$ref": "#/$defs/optional_string"},
+        "model_version": {"$ref": "#/$defs/optional_string"},
+        "client": {"$ref": "#/$defs/optional_string"},
+        "node": {"$ref": "#/$defs/optional_string"},
+        "record_version": {"$ref": "#/$defs/optional_integer"},
+        "protection_context": {"$ref": "#/$defs/optional_string"},
+        "source_window": {"$ref": "#/$defs/optional_string"},
+        "delivered": {"type": "boolean", "default": true},
+        "update_id": {"$ref": "#/$defs/optional_string"},
+        "source_update_id": {"$ref": "#/$defs/optional_string"},
+        "source_generation": {"$ref": "#/$defs/optional_integer"},
+        "target_generation": {"$ref": "#/$defs/optional_integer"},
+        "handoff_attempt_id": {"$ref": "#/$defs/optional_string"},
+        "retrained": {"type": "boolean", "default": false}
+      }
+    },
+    "event_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "order",
+        "kind",
+        "event_result",
+        "rejection_reason",
+        "sid",
+        "generation",
+        "handoff_status",
+        "erase_status"
+      ],
+      "properties": {
+        "order": {"type": "integer", "minimum": 1},
+        "kind": {"type": "string"},
+        "event_result": {
+          "type": "string",
+          "enum": ["accepted", "rejected", "pending", "duplicate"]
+        },
+        "rejection_reason": {
+          "type": ["string", "null"],
+          "enum": [
+            null,
+            "client_ineligible",
+            "duplicate_update",
+            "wrong_model_version",
+            "old_configuration",
+            "old_generation",
+            "frontier_closed",
+            "handoff_not_installed",
+            "duplicate_handoff_confirmation",
+            "sealed_window",
+            "stale_record",
+            "unavailable_owner",
+            "invalid_transition"
+          ]
+        },
+        "sid": {"$ref": "#/$defs/optional_string"},
+        "update_id": {"$ref": "#/$defs/optional_string"},
+        "source_update_id": {"$ref": "#/$defs/optional_string"},
+        "owner_configuration": {"$ref": "#/$defs/optional_string"},
+        "recoverable_owner": {"$ref": "#/$defs/optional_string"},
+        "generation": {"type": "integer", "minimum": 0},
+        "handoff_status": {
+          "type": "string",
+          "enum": [
+            "owned",
+            "handoff_pending",
+            "installed",
+            "confirmed",
+            "seal_pending",
+            "sealed",
+            "abandoned"
+          ]
+        },
+        "erase_status": {
+          "type": "string",
+          "enum": ["initial", "pending", "erased"]
+        },
+        "accepted_update_ids": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "frontier_update_ids": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "live_window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sid",
+        "base_model_version",
+        "owner_configuration",
+        "recoverable_owner",
+        "generation",
+        "record_version",
+        "accepted_update_log",
+        "frontier_update_ids",
+        "handoff_attempt_id",
+        "handoff_status",
+        "erase_status"
+      ],
+      "properties": {
+        "sid": {"type": "string"},
+        "base_model_version": {"type": "string"},
+        "owner_configuration": {"type": "string"},
+        "recoverable_owner": {"$ref": "#/$defs/optional_string"},
+        "generation": {"type": "integer", "minimum": 0},
+        "record_version": {"type": "integer", "minimum": 0},
+        "accepted_update_log": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "frontier_update_ids": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "handoff_attempt_id": {"$ref": "#/$defs/optional_string"},
+        "handoff_status": {
+          "type": "string",
+          "enum": [
+            "owned",
+            "handoff_pending",
+            "installed",
+            "confirmed",
+            "seal_pending",
+            "sealed",
+            "abandoned"
+          ]
+        },
+        "erase_status": {
+          "type": "string",
+          "enum": ["initial", "pending", "erased"]
+        }
+      }
+    },
+    "aggregate_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sid",
+        "model_version",
+        "accepted_update_ids",
+        "owner_configuration",
+        "generation",
+        "final_status",
+        "completion_order",
+        "sealed_state_bytes"
+      ],
+      "properties": {
+        "sid": {"type": "string"},
+        "model_version": {"type": "string"},
+        "accepted_update_ids": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "owner_configuration": {"type": "string"},
+        "generation": {"type": "integer", "minimum": 0},
+        "final_status": {
+          "type": "string",
+          "enum": ["accepted", "transferred", "committed", "sealed", "abandoned", "rejected"]
+        },
+        "completion_order": {"type": "integer", "minimum": 0},
+        "sealed_state_bytes": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}
